@@ -1,4 +1,4 @@
-[<img src="https://raw.github.com/wandernauta/iodog/master/iodog.png">](https://github.com/wandernauta/iodog)
+[<img src="https://i.imgur.com/33MpXDi.png" alt="">](https://github.com/wandernauta/iodog)
 
 # iodog.php
 
