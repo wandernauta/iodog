@@ -1,0 +1,7 @@
+[<img src="https://raw.github.com/wandernauta/iodog/master/iodog.svg">](https://github.com/wandernauta/iodog)
+
+# iodog.php
+
+**iodog** is a security watchdog for PHP applications. It attaches itself to running scripts over XDebug, waiting for function calls that could be considered security-sensitive: file I/O, network I/O, process execution and so on. These function calls are collected, instrumented, categorized and included in an XML report.
+
+**iodog** is designed to be useful to find unwanted behaviour in (obfuscated) PHP code. It is written in Python and distributed under the MIT license.
