@@ -5,4 +5,78 @@
 The main iodog script.
 """
 
-print("Hello, world!")
+import datetime
+import lib.dbgp as dbgp
+from lib.utils import uidof
+import rules
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+class Iodog(object):
+    """Iodog main class."""
+
+    def __init__(self):
+        self.api = None     # The dbgp.Api object
+        self.rulesets = []  # The list of ruleset instances
+        self.file = None    # The current output file
+
+    def investigate(self):
+        """Called when a breakpoint is reached."""
+        logging.debug("Investigation starting.")
+
+    def start_session(self):
+        """Called at the beginning of a session."""
+        logging.debug("Start")
+
+        uid = uidof(self.api.appid)
+        fnfmt = "iodog_%Y%m%d%H%M%S%f_%%s_%%s.xml"
+        fntpl = datetime.datetime.now().strftime(fnfmt)
+        filename = fntpl % (self.api.appid, uid)
+
+        logging.debug(" File: " + self.api.startfile)
+        logging.debug(" Proc: " + self.api.appid)
+        logging.debug(" User: " + uid)
+        logging.debug(" Dest: " + filename)
+
+        [rs.register() for rs in self.rulesets]
+
+    def end_session(self):
+        """Called at the end of a session."""
+        logging.debug("End")
+
+    def main(self):
+        """Runs iodog."""
+
+        try:
+            logging.debug("Loading rulesets")
+            self.rulesets = rules.get_rulesets(self)
+
+            while True:
+                logging.info("Waiting for debugger")
+                self.api = dbgp.Api(dbgp.Connection())
+
+                logging.debug("Starting session")
+                self.start_session()
+
+                while True:
+                    status = self.api.status()
+
+                    if status.is_stopping():
+                        logging.debug("(-> %s) detaching" % status)
+                        break
+                    elif status.is_break():
+                        self.investigate()
+                        self.api.run()
+                    else:
+                        logging.debug("(-> %s)" % status)
+                        self.api.run()
+
+                self.api.detach()
+                self.end_session()
+        except KeyboardInterrupt:
+            return
+
+if __name__ == "__main__":
+    Iodog().main()
