@@ -7,8 +7,10 @@ The main iodog script.
 
 import datetime
 import logging
+import xml.etree.ElementTree as ElementTree
 
 import dbgp as dbgp
+from event import Event
 from utils import uidof, t
 import rules
 
@@ -19,14 +21,44 @@ logging.basicConfig(level=logging.DEBUG)
 class Iodog(object):
     """Iodog main class."""
 
+    # Our connection to the debugger
+    # @type dbgp.Api
+    api = None
+
+    # All active rulesets
+    # @type list[Ruleset]
+    rulesets = []
+
+    # The current file
+    # @type file
+    file = None
+
     def __init__(self):
-        self.api = None     # The dbgp.Api object
-        self.rulesets = []  # The list of ruleset instances
-        self.file = None    # The current output file
+        return
 
     def investigate(self):
         """Called when a breakpoint is reached."""
-        logging.debug("Investigation starting.")
+        dt = datetime.datetime.now()
+        call = None
+
+        arg_eval = self.api.eval("func_get_args()")
+        args = [elem.value for elem in arg_eval.get_context()][1:]
+
+        stack = self.api.stack_get()
+        sx = ''.join([ElementTree.tostring(x) for x in stack.as_xml()])
+
+        # Smash the XML namespaces
+        sx = sx.replace('ns0:stack xmlns:ns0="urn:debugger_protocol_v1"',
+                        'stack')
+
+        for i, frame in enumerate(stack.get_stack()):
+            if i == 0:
+                call = frame.get('where')
+
+        return Event(t=dt, call=call, stack=sx, args=args)
+
+    def write_event(self, ev):
+        self.file.write(ev.to_xml())
 
     def start_session(self):
         """Called at the beginning of a session."""
@@ -52,11 +84,19 @@ class Iodog(object):
         out.write(t('user', uid))
         out.write(t('process', self.api.appid))
 
+        out.write('<rulesets>')
+        for ruleset in self.rulesets:
+            out.write(t('ruleset', ruleset))
+        out.write('</rulesets>')
+
         [rs.register() for rs in self.rulesets]
+
+        out.write('<events>')
 
     def end_session(self):
         """Called at the end of a session."""
         logging.debug("End")
+        self.file.write('</events>')
         self.file.write('</report>')
         self.file.close()
 
@@ -81,7 +121,9 @@ class Iodog(object):
                         logging.debug("(-> %s) detaching" % status)
                         break
                     elif status.is_break():
-                        self.investigate()
+                        ev = self.investigate()
+                        [rs.annotate(ev) for rs in self.rulesets]
+                        self.write_event(ev)
                         self.api.run()
                     else:
                         logging.debug("(-> %s)" % status)
@@ -91,8 +133,6 @@ class Iodog(object):
                 self.end_session()
         except KeyboardInterrupt:
             return
-
-        self.file.write(*args, **kwargs)
 
 if __name__ == "__main__":
     Iodog().main()

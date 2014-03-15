@@ -358,8 +358,7 @@ class Api:
         return self.send_cmd('stop', '', StatusResponse)
 
     def stack_get(self):
-        """Get the stack information.
-        """
+        """Get the stack information."""
         return self.send_cmd('stack_get', '', StackGetResponse)
 
     def context_get(self, context=0):

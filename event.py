@@ -4,7 +4,6 @@
 Contains the Event class.
 """
 
-from xml.sax.saxutils import escape as e
 from utils import t
 
 
@@ -21,11 +20,20 @@ class Event(object):
 
     t = None
     call = None
+    args = None
 
-    level = 0
-    tags = []
+    stack = None
+
+    level = None
+    tags = None
 
     def __init__(self, **kwargs):
+        self.level = 0
+        self.tags = set()
+        self.args = list()
+        self.stack = ""
+        self.call = ""
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -37,6 +45,15 @@ class Event(object):
 
         for tag in self.tags:
             out.append(t('tag', tag))
+
+        out.append('<frames>')
+        out.append(self.stack)
+        out.append('</frames>')
+
+        out.append('<args>')
+        for arg in self.args:
+            out.append(t('arg', arg))
+        out.append('</args>')
 
         out.append('</event>')
 
@@ -50,3 +67,11 @@ class Event(object):
         @param lvl: The new minimum level.
         """
         self.level = self.level if self.level >= lvl else lvl
+
+    def add_tag(self, tag):
+        """
+        Adds a tag.
+
+        @param tag: The tag to add as a string.
+        """
+        self.tags.add(tag)

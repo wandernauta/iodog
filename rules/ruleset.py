@@ -21,3 +21,7 @@ class Ruleset():
         @param event: The event to annotate.
         """
         return
+
+    def __str__(self):
+        return self.__module__ + "." + self.__class__.__name__
+

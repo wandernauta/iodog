@@ -24,7 +24,7 @@ def t(tag, content='', **kwargs):
     @param content: The tag's content (<x>content</x>)
     @param kwargs: Any kwargs will be included as attributes.
     """
-    out = ["<", tag, " "]
+    out = ["<", tag]
     [out.append(" %s=%s" % (k, quoteattr(v))) for k, v in kwargs.items()]
     out.append(">")
     out.append(escape(str(content)))

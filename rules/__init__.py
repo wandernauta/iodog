@@ -12,8 +12,9 @@ def get_rulesets(app):
 
     @param app: The Iodog instance to pass on to the ruleset.
     """
-    from rules import blacklist
+    from rules import blacklist, mysql
 
     return [
-        blacklist.Blacklist(app)
+        blacklist.Blacklist(app),
+        mysql.Mysql(app),
     ]
