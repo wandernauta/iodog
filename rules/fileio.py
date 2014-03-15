@@ -97,6 +97,7 @@ class FileIO(Ruleset):
         "show_source",
         "php_strip_whitespace",
         "get_meta_tags",
+        "stream_context_create",
     ])
 
     def __init__(self, app):
