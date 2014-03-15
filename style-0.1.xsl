@@ -33,7 +33,7 @@
     <html>
       <head>
         <meta charset="utf-8" />
-        <title>iodog report: </title>
+        <title>iodog report: <xsl:value-of select="file" /></title>
         <style type="text/css">
           <xsl:text>
           * {
