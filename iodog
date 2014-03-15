@@ -6,10 +6,12 @@ The main iodog script.
 """
 
 import datetime
-import lib.dbgp as dbgp
-from lib.utils import uidof
-import rules
 import logging
+
+import dbgp as dbgp
+from utils import uidof, t
+import rules
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -34,17 +36,29 @@ class Iodog(object):
         fnfmt = "iodog_%Y%m%d%H%M%S%f_%%s_%%s.xml"
         fntpl = datetime.datetime.now().strftime(fnfmt)
         filename = fntpl % (self.api.appid, uid)
+        self.file = out = open(filename, "w")
 
         logging.debug(" File: " + self.api.startfile)
         logging.debug(" Proc: " + self.api.appid)
         logging.debug(" User: " + uid)
         logging.debug(" Dest: " + filename)
 
+        out.write('<?xml version="1.0"?>')
+        out.write('<?xml-stylesheet type="text/xsl" href="style-0.1.xsl"?>')
+        out.write('<report>')
+        out.write(t('generator', 'iodog v0.1'))
+        out.write(t('created', datetime.datetime.now().isoformat()))
+        out.write(t('file', self.api.startfile))
+        out.write(t('user', uid))
+        out.write(t('process', self.api.appid))
+
         [rs.register() for rs in self.rulesets]
 
     def end_session(self):
         """Called at the end of a session."""
         logging.debug("End")
+        self.file.write('</report>')
+        self.file.close()
 
     def main(self):
         """Runs iodog."""
@@ -77,6 +91,8 @@ class Iodog(object):
                 self.end_session()
         except KeyboardInterrupt:
             return
+
+        self.file.write(*args, **kwargs)
 
 if __name__ == "__main__":
     Iodog().main()

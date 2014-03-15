@@ -29,7 +29,6 @@ the following conditions:
 import xml.etree.ElementTree as ElementTree
 import socket
 import base64
-import time
 
 
 class Response:

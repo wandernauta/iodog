@@ -9,3 +9,15 @@ class Ruleset():
 
     def __init__(self, iodog):
         self.app = iodog
+
+    def register(self):
+        """Set up this Ruleset with the debugger."""
+        return
+
+    def annotate(self, event):
+        """
+        Investigate the given Event, adding more info if possible.
+
+        @param event: The event to annotate.
+        """
+        return
